@@ -1,0 +1,44 @@
+﻿@page "/"
+@using System.Collections.ObjectModel
+
+@implements IDisposable
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+
+<PageTitle>Home</PageTitle>
+
+<h1>Stripe Example</h1>
+
+<!-- Display a payment form -->
+<div id="checkout">
+    <!-- Checkout will insert the payment form here -->
+</div>
+
+@code {
+    private IJSObjectReference stripeJs;
+
+    // OnAfterRenderAsync ensures that your script runs only after the component is rendered
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        try
+        {
+            // Import the JS module
+            stripeJs = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./js/checkout.js");
+
+            // Call the initialize function
+            await stripeJs.InvokeVoidAsync("initialize");
+        }
+        catch (JSException ex)
+        {
+            Console.Error.WriteLine($"JavaScript Error: {ex.Message}");
+        }
+    }
+
+    public async void Dispose()
+    {
+        if (stripeJs is not null)
+        {
+            await stripeJs.DisposeAsync();
+        }
+    }
+}
